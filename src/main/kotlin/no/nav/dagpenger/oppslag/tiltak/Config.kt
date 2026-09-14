@@ -21,11 +21,11 @@ internal object Config {
                 "TILTAKSHISTORIKK_SCOPE" to "api://dev-gcp.team-mulighetsrommet.tiltakshistorikk/.default",
                 "TILTAKSHISTORIKK_API_URL" to "http://tiltakshistorikk.team-mulighetsrommet",
                 // Vi har ingen pålitelig kilde til hvilken meldeperiode avklaringen faktisk
-                // gjelder (se DeltarIArbeidsmarkedstiltakBehovLøser), så vi bruker et enkelt
+                // gjelder (se MeldekortMedUtdanningAvklaringLøser), så vi bruker et enkelt
                 // lookback-vindu fra mottakstidspunktet som en midlertidig forenkling.
                 "TILTAKSHISTORIKK_LOOKBACK_MAANEDER" to "6",
                 // Skrur på dry-run som default inntil vi har mer tillit til periodiseringen
-                // (lookback-vindu og manglende meldeperiode-signal) - se DeltarIArbeidsmarkedstiltakBehovLøser.
+                // (lookback-vindu og manglende meldeperiode-signal) - se MeldekortMedUtdanningAvklaringLøser.
                 "DRY_RUN" to "true",
             ),
         )

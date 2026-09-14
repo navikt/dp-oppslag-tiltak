@@ -3,6 +3,7 @@ package no.nav.dagpenger.oppslag.tiltak
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.dagpenger.oppslag.tiltak.rivers.DeltarIArbeidsmarkedstiltakBehovLøser
+import no.nav.dagpenger.oppslag.tiltak.rivers.MeldekortMedUtdanningAvklaringLøser
 import no.nav.dagpenger.oppslag.tiltak.tiltakshistorikk.TiltakshistorikkHttpKlient
 import no.nav.helse.rapids_rivers.RapidApplication
 
@@ -25,10 +26,15 @@ internal class ApplicationBuilder(
         RapidApplication
             .create(env)
             .apply {
-                DeltarIArbeidsmarkedstiltakBehovLøser(
+                MeldekortMedUtdanningAvklaringLøser(
                     rapidsConnection = this,
                     tiltakshistorikkKlient = tiltakshistorikkKlient,
                     lookbackMåneder = Config.tiltakshistorikkLookbackMåneder,
+                    dryRun = Config.dryRun,
+                )
+                DeltarIArbeidsmarkedstiltakBehovLøser(
+                    rapidsConnection = this,
+                    tiltakshistorikkKlient = tiltakshistorikkKlient,
                     dryRun = Config.dryRun,
                 )
             }
