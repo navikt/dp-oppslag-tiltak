@@ -1,0 +1,5 @@
+kafka:
+  pool: nav-prod
+replicas:
+  min: 2
+  max: 3
