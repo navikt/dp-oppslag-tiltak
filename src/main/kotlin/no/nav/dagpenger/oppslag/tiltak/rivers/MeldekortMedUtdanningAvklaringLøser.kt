@@ -77,7 +77,7 @@ internal class MeldekortMedUtdanningAvklaringLøser(
         context: MessageContext,
     ) {
         if (dryRun) {
-            log.info { "DRY_RUN: publiserer ikke svar, ville sendt: ${svar.toJson()}" }
+            log.info { "DRY_RUN: publiserer ikke svar, ville sendt perioder: ${svar.perioder}" }
             return
         }
         log.info { "Publiserer svar på opplysningsbehov om deltakelse i arbeidsmarkedstiltak" }
