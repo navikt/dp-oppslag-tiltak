@@ -95,5 +95,6 @@ jobs:
         env:
           CLUSTER: prod-gcp
           RESOURCE: .nais/nais.yaml
+          VAR: image=${{ needs.build.outputs.image }}
           VARS: .nais/vars-prod.yaml
           PRINT_PAYLOAD: true
