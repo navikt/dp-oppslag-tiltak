@@ -6,6 +6,7 @@ on:
     branches-ignore:
       - 'dependabot/**'
       - 'renovate/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -45,8 +46,6 @@ jobs:
       image: ${{ steps.docker-build-push.outputs.image }}
       digest: ${{ steps.docker-build-push.outputs.digest }}
 
-
-
   salsa:
     name: Generate SBOM, attest and sign image
     needs: [ build ]
@@ -85,7 +84,7 @@ jobs:
   deploy-prod:
     name: Deploy to Production
     needs: [ build ]
-    if: github.ref == 'refs/heads/main-ikke-prod'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: prod-gcp
     permissions:
