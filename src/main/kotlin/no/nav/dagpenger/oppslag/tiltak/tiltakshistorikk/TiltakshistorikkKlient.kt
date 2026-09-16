@@ -3,21 +3,33 @@ package no.nav.dagpenger.oppslag.tiltak.tiltakshistorikk
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson3.jackson
 import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import java.io.Closeable
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
+private val sikkerlogg = KotlinLogging.logger("tjenestekall.TiltakshistorikkKlient")
+
+/**
+ * Brukes kun til å lese responsen for logging/parsing, ikke til å
+ * serialisere utgående forespørsler (det gjør [ContentNegotiation]).
+ */
+private val objectMapper: JsonMapper =
+    jacksonMapperBuilder()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        .build()
 
 /**
  * Én periode hvor personen deltok i et arbeidsmarkedstiltak.
@@ -51,13 +63,21 @@ class TiltakshistorikkHttpKlient(
 ) : TiltakshistorikkKlient,
     Closeable {
     override suspend fun hentTiltaksdeltakelser(ident: String): List<TiltaksdeltakelsePeriode> {
-        val respons: TiltakshistorikkV1Response =
+        val råRespons =
             httpClient
                 .post("$url/api/v1/historikk") {
                     bearerAuth(tokenSupplier())
                     contentType(ContentType.Application.Json)
                     setBody(TiltakshistorikkV1Request(identer = listOf(ident)))
-                }.body()
+                }.bodyAsText()
+
+        // Midlertidig, mer utfyllende logging for å forstå hvorfor mange
+        // tiltaksdeltakelser mangler startDato og dermed filtreres bort.
+        // Responsen inneholder norskIdent, så den rå responsen logges kun
+        // til sikkerlogg.
+        sikkerlogg.info { "Rå respons fra tiltakshistorikk: $råRespons" }
+
+        val respons = objectMapper.readValue(råRespons, TiltakshistorikkV1Response::class.java)
 
         loggEventuelleMeldinger(respons.meldinger)
         return respons.historikk.tilPerioder()
