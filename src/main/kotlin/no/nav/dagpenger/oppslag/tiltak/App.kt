@@ -29,7 +29,6 @@ internal class ApplicationBuilder(
                 MeldekortMedUtdanningAvklaringLøser(
                     rapidsConnection = this,
                     tiltakshistorikkKlient = tiltakshistorikkKlient,
-                    lookbackMåneder = Config.tiltakshistorikkLookbackMåneder,
                     dryRun = Config.dryRun,
                 )
                 DeltarIArbeidsmarkedstiltakBehovLøser(

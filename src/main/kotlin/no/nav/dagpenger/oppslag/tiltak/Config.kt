@@ -6,7 +6,6 @@ import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.booleanType
-import com.natpryce.konfig.longType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
 import no.nav.dagpenger.oppslag.tiltak.auth.NaisTokenClient
@@ -20,10 +19,6 @@ internal object Config {
                 "KAFKA_RESET_POLICY" to "latest",
                 "TILTAKSHISTORIKK_SCOPE" to "api://dev-gcp.team-mulighetsrommet.tiltakshistorikk/.default",
                 "TILTAKSHISTORIKK_API_URL" to "http://tiltakshistorikk.team-mulighetsrommet",
-                // Vi har ingen pålitelig kilde til hvilken meldeperiode avklaringen faktisk
-                // gjelder (se MeldekortMedUtdanningAvklaringLøser), så vi bruker et enkelt
-                // lookback-vindu fra mottakstidspunktet som en midlertidig forenkling.
-                "TILTAKSHISTORIKK_LOOKBACK_MAANEDER" to "6",
                 // Skrur på dry-run som default inntil vi har mer tillit til periodiseringen
                 // (lookback-vindu og manglende meldeperiode-signal) - se MeldekortMedUtdanningAvklaringLøser.
                 "DRY_RUN" to "true",
@@ -47,8 +42,6 @@ internal object Config {
     val tiltakshistorikkScope by lazy { properties[Key("TILTAKSHISTORIKK_SCOPE", stringType)] }
 
     val tiltakshistorikkApiUrl by lazy { properties[Key("TILTAKSHISTORIKK_API_URL", stringType)] }
-
-    val tiltakshistorikkLookbackMåneder by lazy { properties[Key("TILTAKSHISTORIKK_LOOKBACK_MAANEDER", longType)] }
 
     val dryRun by lazy { properties[Key("DRY_RUN", booleanType)] }
 

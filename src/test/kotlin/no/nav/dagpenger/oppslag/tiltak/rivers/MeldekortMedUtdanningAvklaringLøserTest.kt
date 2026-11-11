@@ -31,7 +31,7 @@ internal class MeldekortMedUtdanningAvklaringLøserTest {
 
     private val testRapid =
         TestRapid().also {
-            MeldekortMedUtdanningAvklaringLøser(it, tiltakshistorikkKlient, lookbackMåneder = 6L, dryRun = false, clock = klokke)
+            MeldekortMedUtdanningAvklaringLøser(it, tiltakshistorikkKlient, dryRun = false)
         }
 
     @Test
@@ -49,19 +49,17 @@ internal class MeldekortMedUtdanningAvklaringLøserTest {
         svar["behandlingId"].asString() shouldBe behandlingId.toString()
 
         val løsning = svar["@løsning"]["Deltar i arbeidsmarkedstiltak"]
-        løsning.size() shouldBe 2
+        løsning.size() shouldBe 1
         løsning[0]["verdi"].asBoolean() shouldBe true
-        løsning[0]["gyldigFraOgMed"].asString() shouldBe "2026-01-01"
-        løsning[0]["gyldigTilOgMed"].asString() shouldBe "2026-01-31"
-        løsning[1]["gyldigFraOgMed"].asString() shouldBe "2026-03-01"
-        løsning[1].has("gyldigTilOgMed") shouldBe false
+        løsning[0]["gyldigFraOgMed"].asString() shouldBe "2026-03-01"
+        løsning[0].has("gyldigTilOgMed") shouldBe false
     }
 
     @Test
     fun `publiserer ikke svar når dry-run er skrudd på`() {
         val rapid =
             TestRapid().also {
-                MeldekortMedUtdanningAvklaringLøser(it, tiltakshistorikkKlient, lookbackMåneder = 6L, dryRun = true, clock = klokke)
+                MeldekortMedUtdanningAvklaringLøser(it, tiltakshistorikkKlient, dryRun = true)
             }
 
         rapid.sendTestMessage(nyAvklaringJson())
@@ -73,14 +71,14 @@ internal class MeldekortMedUtdanningAvklaringLøserTest {
     fun `filtrerer bort avsluttede deltakelser eldre enn lookback-vinduet, men beholder pågående deltakelser`() {
         val gammelAvsluttet = TiltaksdeltakelsePeriode(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 6, 30))
         val gammelPågående = TiltaksdeltakelsePeriode(LocalDate.of(2015, 1, 1), null)
-        val innenforVinduet = TiltaksdeltakelsePeriode(LocalDate.of(2025, 12, 1), LocalDate.of(2025, 12, 31))
+        val innenforVinduet = TiltaksdeltakelsePeriode(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 31))
         val klient: TiltakshistorikkKlient =
             mockk<TiltakshistorikkKlient>().also {
                 coEvery { it.hentTiltaksdeltakelser(ident) } returns listOf(gammelAvsluttet, gammelPågående, innenforVinduet)
             }
         val rapid =
             TestRapid().also {
-                MeldekortMedUtdanningAvklaringLøser(it, klient, lookbackMåneder = 6L, dryRun = false, clock = klokke)
+                MeldekortMedUtdanningAvklaringLøser(it, klient, dryRun = false)
             }
 
         rapid.sendTestMessage(nyAvklaringJson())
@@ -88,7 +86,7 @@ internal class MeldekortMedUtdanningAvklaringLøserTest {
         val løsning = rapid.inspektør.message(0)["@løsning"]["Deltar i arbeidsmarkedstiltak"]
         løsning.size() shouldBe 2
         løsning[0]["gyldigFraOgMed"].asString() shouldBe "2015-01-01"
-        løsning[1]["gyldigFraOgMed"].asString() shouldBe "2025-12-01"
+        løsning[1]["gyldigFraOgMed"].asString() shouldBe "2026-09-01"
     }
 
     @Test

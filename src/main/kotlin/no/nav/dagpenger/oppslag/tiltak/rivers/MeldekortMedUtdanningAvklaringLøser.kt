@@ -2,6 +2,7 @@ package no.nav.dagpenger.oppslag.tiltak.rivers
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
@@ -13,7 +14,6 @@ import no.nav.dagpenger.oppslag.tiltak.DeltarIArbeidsmarkedstiltakSvar
 import no.nav.dagpenger.oppslag.tiltak.tiltakshistorikk.TiltaksdeltakelsePeriode
 import no.nav.dagpenger.oppslag.tiltak.tiltakshistorikk.TiltakshistorikkKlient
 import no.nav.dagpenger.oppslag.tiltak.toJson
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -35,9 +35,7 @@ import java.util.UUID
 internal class MeldekortMedUtdanningAvklaringLøser(
     rapidsConnection: RapidsConnection,
     private val tiltakshistorikkKlient: TiltakshistorikkKlient,
-    private val lookbackMåneder: Long,
     private val dryRun: Boolean = true,
-    private val clock: Clock = Clock.systemDefaultZone(),
 ) : River.PacketListener {
     companion object {
         private const val KODE_MELDEKORT_MED_UTDANNING = "MeldekortMedUtdanning"
@@ -49,8 +47,7 @@ internal class MeldekortMedUtdanningAvklaringLøser(
             .apply {
                 precondition { it.requireValue("@event_name", "NyAvklaring") }
                 precondition { it.requireValue("kode", KODE_MELDEKORT_MED_UTDANNING) }
-                validate { it.requireKey("ident") }
-                validate { it.requireKey("behandlingId") }
+                validate { it.requireKey("ident", "behandlingId", "gjelderDato") }
             }.register(this)
     }
 
@@ -62,11 +59,12 @@ internal class MeldekortMedUtdanningAvklaringLøser(
     ) {
         val ident = packet["ident"].asString()
         val behandlingId = UUID.fromString(packet["behandlingId"].asString())
+        val gjelderDato = packet["gjelderDato"].asLocalDate()
 
         withLoggingContext("behandlingId" to behandlingId.toString()) {
-            log.info { "Mottok NyAvklaring med kode $KODE_MELDEKORT_MED_UTDANNING" }
+            log.info { "Mottok NyAvklaring med kode $KODE_MELDEKORT_MED_UTDANNING, med gjelderDato=$gjelderDato" }
             val perioder = runBlocking { tiltakshistorikkKlient.hentTiltaksdeltakelser(ident) }
-            val relevantePerioder = perioder.filtrerRelevante(cutoff = LocalDate.now(clock).minusMonths(lookbackMåneder))
+            val relevantePerioder = perioder.filtrerRelevante(cutoff = gjelderDato)
             val svar = DeltarIArbeidsmarkedstiltakSvar(behandlingId, ident, relevantePerioder)
             publiser(svar, context)
         }
