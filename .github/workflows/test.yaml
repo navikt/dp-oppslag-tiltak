@@ -1,10 +1,8 @@
 name: Test PRs
 
 on:
-  push:
-    branches:
-      - 'dependabot/**'
-      - 'renovate/**'
+  merge_group:
+  pull_request:
 
 jobs:
   # Denne matches mot required checks som trigger automerge av Dependabot PRs. Endrer du her må du også endre i https://github.com/navikt/dp-*/settings/branches
